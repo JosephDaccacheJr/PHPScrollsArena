@@ -1,0 +1,5 @@
+Download and install XAMPP
+Place contents of mysql into "\xampp\mysql\data"
+Place contents of scripts into "\xampp\htdocs"
+Open XAMPP
+Start Apache and MySQL
