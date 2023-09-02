@@ -8,7 +8,7 @@ $rulename = $_POST["ruleName"];
 
 // Check connection
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error); //This is the equivilent to return in C#
+  die("Connection failed: " . $conn->connect_error); 
 }
 
 // PREPARED STATEMENT OT PREVENT SQL INJECTIONS USING MYSQLi
@@ -28,7 +28,7 @@ if ($result->num_rows > 0) {
         echo $row['rule'];
   }
 } else {
-  // Fail to get role
+  // Fail to get rule
   echo "-1";
 }
 

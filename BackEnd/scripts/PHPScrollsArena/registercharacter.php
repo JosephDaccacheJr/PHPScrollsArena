@@ -9,7 +9,7 @@ $characterName = $_POST["characterName"];
 // Create connection
 // Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error); //This is the equivilent to return in C#
+    die("Connection failed: " . $conn->connect_error); 
   }
   
   $sql = "SELECT name FROM users WHERE name = '" . $characterName . "'"; // Queary uses one =
@@ -38,8 +38,7 @@ if ($conn->connect_error) {
         $rows[] = $row;
       }
 
-      // After the whole array is created
-      echo json_encode($rows[0]); // This passes an array. Must be an array?
+      echo json_encode($rows[0]); // Gives us the ID of the registered user
     
   }
 

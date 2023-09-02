@@ -8,7 +8,7 @@ $characterName = $_POST["characterName"];
 
 // Check connection
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error); //This is the equivilent to return in C#
+  die("Connection failed: " . $conn->connect_error);
 }
 
 // PREPARED STATEMENT OT PREVENT SQL INJECTIONS USING MYSQLi
@@ -28,15 +28,6 @@ if ($result->num_rows > 0) {
     if($row['name'] == $characterName){
 
         echo $row["ID"];
-        // Get users data here
-
-        // Get player info
-
-        //Get inventory
-
-        //Modify player data
-
-        //Update inventory
 
     }
     else

@@ -13,7 +13,7 @@ $ID = $_POST["ID"];
 $RACE = $_POST["RACE"];
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error); //This is the equivilent to return in C#
+    die("Connection failed: " . $conn->connect_error);
   }
 
   $sql = "SELECT ID FROM users WHERE ID = '" . $ID . "'";
@@ -31,8 +31,6 @@ if ($conn->connect_error) {
     if($result2) // Query was successful
     {
         echo "0";
-      //  $sql3 = "UPDATE user SET coins = coins + '" . $itemPrice . "' WHERE id = '" . $userID . "'";
-       // $conn->query($sql3);
     }
     else
     {

@@ -12,7 +12,7 @@ $damageBonus = isset($_POST["damageBonus"]) ? $_POST["damageBonus"] : 0;
 $defenseBonus = isset($_POST["defenseBonus"]) ? $_POST["defenseBonus"] : 0;
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error); //This is the equivilent to return in C#
+    die("Connection failed: " . $conn->connect_error);
   }
   
   echo "ID: {$playerID}\n";

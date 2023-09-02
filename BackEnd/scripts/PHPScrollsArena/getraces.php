@@ -4,7 +4,7 @@
 require 'ConnectionSettings.php';
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error); //This is the equivilent to return in C#
+    die("Connection failed: " . $conn->connect_error); 
   }
   
   // PREPARED STATEMENT OT PREVENT SQL INJECTIONS USING MYSQLi
@@ -19,7 +19,7 @@ if ($conn->connect_error) {
       $rows[] = $row;
     }
     // After the whole array is created
-    echo json_encode($rows); // This passes an array. Must be an array?
+    echo json_encode($rows); 
   
 } else {
     echo "0";
