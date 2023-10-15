@@ -201,6 +201,11 @@ public class WebRequests : MonoBehaviour
                 string jsonArray = www.downloadHandler.text;
                 callback((JSON.Parse(jsonArray) as JSONArray)[0]);
             }
+            else if (command == "opponentMove")
+            {
+                Debug.Log("opponentAttack: " + www.downloadHandler.text);
+                string jsonArray = www.downloadHandler.text;
+            }
         }
 
     }

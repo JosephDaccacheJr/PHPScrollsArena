@@ -93,6 +93,12 @@ public class Main : MonoBehaviour
         
     }
 
+    public void leaveArena()
+    {
+        closeAllPanels();
+        panelArenaMain.SetActive(true);
+    }
+
     public void closeAllPanels()
     {
         panelLogin.SetActive(false);
@@ -194,4 +200,5 @@ public class Main : MonoBehaviour
     {
         currentID = newID;
     }
+
 }

@@ -11,6 +11,8 @@ public class BattleController : MonoBehaviour
     public static BattleController instance;
 
     [Header("UI Elements")]
+    public GameObject popupVictory;
+    public GameObject popupDefeat;
     public Text textPlayerHP;
     public Text textOpponentHP;
     public Text textPlayerName;
@@ -19,6 +21,8 @@ public class BattleController : MonoBehaviour
 
     int _opponentID = 1;
     int _playerFlourish;
+    int _playerHP;
+    int _opponentHP;
 
     private void Awake()
     {
@@ -35,6 +39,9 @@ public class BattleController : MonoBehaviour
     
     public void StartBattle(int oppID)
     {
+        popupVictory.SetActive(false);
+        popupDefeat.SetActive(false);
+        setMoveButton(true);
         _opponentID = oppID;
         JSONArray battleInfo = new JSONArray();
         Action<JSONNode> battleCallback = (battleInfo) =>
@@ -46,6 +53,7 @@ public class BattleController : MonoBehaviour
 
     public void updateBattleInfo()
     {
+        Debug.Log("Calling updateBattleInfo...");
         JSONArray battleInfo = new JSONArray();
         Action<JSONNode> battleCallback = (battleInfo) =>
         {
@@ -62,10 +70,8 @@ public class BattleController : MonoBehaviour
     {
         movTyp moveType = (movTyp)moveTypeNum;
 
-        foreach (Button b in attackButtons)
-        {
-            b.interactable = false;
-        }
+        setMoveButton(false);
+
         JSONArray battleInfo = new JSONArray();
         Action<JSONNode> battleCallback = (battleInfo) =>
         {
@@ -74,20 +80,19 @@ public class BattleController : MonoBehaviour
 
                 Debug.Log("Attack result: " + bi.Key + ": " + bi.Value);
             }
-            switch(battleInfo["RESULT"].Value)
+
+            switch (battleInfo["RESULT"].Value)
             {
                 case "HIT":
-                    updateBattleInfo();
-                    Invoke("EnemyMove", 1f);
-                    break;
                 case "MISS":
                     updateBattleInfo();
                     Invoke("EnemyMove", 1f);
                     break;
                 case "WIN":
-                    updateBattleInfo();
-                    Invoke("EnemyMove", 1f);
+                    textOpponentHP.text = "DEAD";
+                    popupVictory.SetActive(true);
                     break;
+
             }
         };
         Main.instance.diceRoll.Play();
@@ -96,9 +101,45 @@ public class BattleController : MonoBehaviour
 
     void EnemyMove()
     {
+        movTyp moveType = movTyp.regularAttack;
+
+
+        JSONArray battleInfo = new JSONArray();
+        Action<JSONNode> battleCallback = (battleInfo) =>
+        {
+            foreach (var bi in battleInfo)
+            {
+
+                Debug.Log("Enemy move result: " + bi.Key + ": " + bi.Value);
+            }
+            switch (battleInfo["RESULT"].Value)
+            {
+                case "HIT":
+                case "MISS":
+                case "HEAL":
+
+                    updateBattleInfo();
+                    break;
+                case "WIN":
+                    popupDefeat.SetActive(true);
+                    textPlayerHP.text = "DEAD";
+                    break;
+            }
+        };
+
+        StartCoroutine(Main.instance.webRequest.battleCommand("opponentMove", _opponentID, battleCallback, moveType));
+
         foreach (Button b in attackButtons)
         {
-            b.interactable = true;
+            setMoveButton(true);
+        }
+    }
+
+    void setMoveButton(bool set)
+    {
+        foreach (Button b in attackButtons)
+        {
+            b.interactable = set;
         }
     }
 }
