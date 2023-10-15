@@ -116,7 +116,7 @@ if ($conn->connect_error) {
         (($curHP / $maxHP) * 50)
         + rollDice(1,50);
 
-        if($decisionDice <= 999 && ($curHP <= ($maxHP * 0.5)))
+        if($decisionDice <= 50 && ($curHP <= ($maxHP * 0.5)))
         {
           healdAndDefend("opponentStats{$opponentID}+{$playerID}");
         }
