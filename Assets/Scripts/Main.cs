@@ -48,6 +48,8 @@ public class Main : MonoBehaviour
     public GameObject panelCharacterCreation;
     public GameObject panelArenaMain;
     public GameObject panelBattle;
+    public GameObject panelStore;
+    public GameObject panelPlayerInfoBar;
 
     [Header("Audio")]
     public AudioSource diceRoll;
@@ -83,20 +85,25 @@ public class Main : MonoBehaviour
     {
         fillRaceData();
         fillOpponentData();
-        // StartCoroutine(webRequest.Register("Testchar"));
-        // StartCoroutine(webRequest.GetRule("startingpointstospend", getRuleCallback));
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public void leaveArena()
     {
         closeAllPanels();
         panelArenaMain.SetActive(true);
+    }
+
+    public void goBackToArenaMenu()
+    {
+        closeAllPanels();
+        panelArenaMain.SetActive(true);
+    }
+
+    public void openStore()
+    {
+        closeAllPanels();
+        panelStore.SetActive(true);
     }
 
     public void closeAllPanels()
@@ -105,6 +112,7 @@ public class Main : MonoBehaviour
         panelCharacterCreation.SetActive(false);
         panelArenaMain.SetActive(false);
         panelBattle.SetActive(false);
+        panelStore.SetActive(false);
     }
 
     public void fillRaceData()
@@ -199,6 +207,29 @@ public class Main : MonoBehaviour
     public void setCurrentID(int newID)
     {
         currentID = newID;
+    }
+
+    public void updatePlayerInfoPanel()
+    {
+        Action<JSONNode> infoCallback = (info) =>
+        {
+            foreach (var node in info)
+            {
+                Debug.Log("INFO UPDATE: " + node.Key + " " + node.Value);
+            }
+            panelPlayerInfoBar.SetActive(true);
+            UIPlayerInfo uPI = panelPlayerInfoBar.GetComponent<UIPlayerInfo>();
+
+
+            uPI.updateInfo(info["NAME"], info["LVL"], info["GOLD"]);
+            if (panelStore.activeInHierarchy)
+            {
+                panelStore.GetComponent<StoreController>().updateItemsBoughtStatus();
+            }
+        };
+
+        StartCoroutine(
+        webRequest.getPlayerInfo(Main.instance.currentID, infoCallback));
     }
 
 }

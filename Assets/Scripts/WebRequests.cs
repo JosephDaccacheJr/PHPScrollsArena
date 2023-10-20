@@ -140,6 +140,30 @@ public class WebRequests : MonoBehaviour
         }
     }
 
+    public IEnumerator GetItems(System.Action<JSONNode> callback) 
+    { 
+        using(UnityWebRequest WWW = UnityWebRequest.Get(hostURL + "getitems.php"))
+        {
+            {
+                {
+                    yield return WWW.SendWebRequest();
+                    if (WWW.isNetworkError || WWW.isHttpError)
+                    {
+                        Debug.Log("SERVER: Got Item ERROR: " + WWW.error);
+                    }
+                    else
+                    {
+                        string jsonArray = WWW.downloadHandler.text;
+
+                        var tempArray = JSON.Parse(jsonArray);
+                        Debug.Log("SERVER: Got item data: " + WWW.downloadHandler.text + " COUNT: " +  tempArray.Count);
+                        callback(tempArray);
+                    }
+                }
+            }
+        }
+    }
+
     public IEnumerator GetOpponents(System.Action<JSONArray> callback)
     {
 
@@ -196,15 +220,17 @@ public class WebRequests : MonoBehaviour
                 callback(tempArray[0]);
 
             }
-            else if (command == "playerAttack")
+            else if (command == "playerMove")
             {
+                Debug.Log("MOVE: Player: " + www.downloadHandler.text);
                 string jsonArray = www.downloadHandler.text;
                 callback((JSON.Parse(jsonArray) as JSONArray)[0]);
             }
             else if (command == "opponentMove")
             {
-                Debug.Log("opponentAttack: " + www.downloadHandler.text);
+                Debug.Log("MOVE: Opponent: " + www.downloadHandler.text);
                 string jsonArray = www.downloadHandler.text;
+                callback((JSON.Parse(jsonArray) as JSONArray)[0]);
             }
         }
 
@@ -248,4 +274,55 @@ public class WebRequests : MonoBehaviour
             callback(responseCode);
         }
     }
+
+    public IEnumerator buyItem(int playerID, int itemID,string itemType, Action<string> callback)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("playerID", playerID);
+        form.AddField("itemID", itemID);
+        form.AddField("itemType", itemType);
+
+        using (UnityWebRequest www = UnityWebRequest.Post(hostURL + "buyitem.php", form))
+        {
+            yield return www.SendWebRequest();
+            Debug.Log("buyItem: " + www.downloadHandler.text);
+            callback(www.downloadHandler.text);
+        }
+    }
+
+    public IEnumerator getPlayerInfo(int playerID, Action<JSONNode> callback)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("playerID", playerID);
+        using (UnityWebRequest www = UnityWebRequest.Post(hostURL + "getplayerinfo.php", form))
+        {
+            yield return www.SendWebRequest();
+
+            Debug.Log("getPlayerInfo: " + www.downloadHandler.text);
+            JSONNode playerData = (JSON.Parse("[" + www.downloadHandler.text + "]") as JSONArray)[0];
+            Main.instance.currentCharacter.name = playerData["NAME"].Value;
+
+            if (!int.TryParse(playerData["GOLD"].Value, out Main.instance.currentCharacter.gold))
+                Debug.LogError("PLAYERINFO ERROR: FAILED TO PARSE GOLD");
+
+            if (!int.TryParse(playerData["LVL"].Value, out Main.instance.currentCharacter.LVL))
+                Debug.LogError("PLAYERINFO ERROR: FAILED TO PARSE LVL");
+
+            if (!int.TryParse(playerData["ARMORID"].Value, out Main.instance.currentCharacter.armorID))
+                Debug.LogError("PLAYERINFO ERROR: FAILED TO PARSE ARMORID");
+
+            if (!int.TryParse(playerData["WEAPONID"].Value, out Main.instance.currentCharacter.weaponID))
+                Debug.LogError("PLAYERINFO ERROR: FAILED TO PARSE WEAPONID");
+
+            if (!int.TryParse(playerData["RACEID"].Value, out Main.instance.currentCharacter.raceID))
+                Debug.LogError("PLAYERINFO ERROR: FAILED TO PARSE RACEID");
+
+
+
+
+            callback(playerData);
+        }
+    }
+
+
 }

@@ -23,7 +23,6 @@ public class Login : MonoBehaviour
             {
                 Action<int> registerCallback = (newID) => 
                 {
-                    Debug.Log("Register callback with ID " + newID);
                     Main.instance.panelLogin.SetActive(false);
                     Main.instance.panelCharacterCreation.SetActive(true);
                     Main.instance.charCreator.StartCharacterCreation(newID);
@@ -36,6 +35,7 @@ public class Login : MonoBehaviour
                 Main.instance.closeAllPanels();
                 Main.instance.panelArenaMain.SetActive(true);
                 Main.instance.setCurrentID(loginCode);
+                Main.instance.updatePlayerInfoPanel();
             }
 
         };
