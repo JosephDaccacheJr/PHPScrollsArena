@@ -15,7 +15,6 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
   }
 
-  echo "ID: {$playerID}\n";
   $sql = "SELECT * FROM `opponents` WHERE `ID` = ?"; // ? instead of variable$statement = $conn->prepare($sql); // Statement comes from our connection. Also note -> is like a . in C#, using a property or method
   $statement = $conn->prepare($sql); // Statement comes from our connection. Also note -> is like a . in C#, using a property or method    
   $statement->bind_param("i",$opponentID); // In this we are telling this object alright this sql is gonna replace this questionmark with a parameter of type string.
@@ -90,22 +89,8 @@ if ($conn->connect_error) {
         $hpData[] = array("opponentHP" => $oppHP,"playerHP" => $playerHP,"opponentName" => $oppName,"playerName" => $playerName,"playerFlourish" => $flourish,);
         echo json_encode($hpData);
       break;
-
-      case "playerAttack":
+      case "playerMove":
         performAttack($moveType,"playerStats{$playerID}", "opponentStats{$opponentID}+{$playerID}");
-        break;
-      case "playerFlourish":
-        buildFlourish("playerStats{$playerID}");
-        break;
-      case "playerHealAndDefend":
-        healdAndDefend("playerStats{$playerID}");
-        break;
-      case "opponentAttack":
-        break;
-      case "opponentFlourish":
-        buildFlourish("opponentStats{$opponentID}+{$playerID}");
-        break;
-      case "opponentHealAndDefend":
         break;
       case "opponentMove":
         $aggression = $_SESSION["opponentAggression{$opponentID}+{$playerID}"];
@@ -118,11 +103,23 @@ if ($conn->connect_error) {
 
         if($decisionDice <= 50 && ($curHP <= ($maxHP * 0.5)))
         {
-          healdAndDefend("opponentStats{$opponentID}+{$playerID}");
+          defendAndHeal("opponentStats{$opponentID}+{$playerID}");
         }
         else
         {
-          performAttack($moveType, "opponentStats{$opponentID}+{$playerID}","playerStats{$playerID}");
+          $decisionDice = $aggression + rollDice(1,100);
+          if($decisionDice <= 60)
+          {
+            performAttack("quickAttack", "opponentStats{$opponentID}+{$playerID}","playerStats{$playerID}");
+          }
+          else if($decisionDice >= 140)
+          {
+            performAttack("powerAttack", "opponentStats{$opponentID}+{$playerID}","playerStats{$playerID}");
+          }
+          else
+          {
+            performAttack("regularAttack", "opponentStats{$opponentID}+{$playerID}","playerStats{$playerID}");
+          }
         }
         break;
 
@@ -204,16 +201,17 @@ function getAttackRoll($attacker)
 
 function getAC($defender)
 {
-  return ($defender["SPD"] / 5) + ($defender["armorStat"] / 10) + ($defender["LCK"] / 5)
+  return ($defender["SPD"] / 5) + ($defender["armorStat"] / 10) + ($defender["LCK"] / 10)
   + $defender["AC"] + $defender["defenseBonus"];
 }
 
 function getDamage($attacker)
 {
   $damage = rollDice($attacker["dmgNum"],$attacker["dmgSides"]) + ($attacker["flourish"] * 5) + $attacker["damageBonus"];
-  if($damage < 0)
+  
+  if($damage < 1)
   {
-    $damage = 0;
+    $damage = 1;
   }
   return (int)$damage;
 }
@@ -242,10 +240,17 @@ function performAttack($moveType, $attacker, $defender)
       $_SESSION[$attacker]["damageBonus"] = 10;
       $_SESSION[$attacker]["defenseBonus"] = 0;
       break;
+    case "defendAndHeal":
+      defendAndHeal($attacker);
+      return;
+    case "buildFlourish":
+      buildFlourish($attacker);
+      return;
+      break;
   }
 
-  $hitRoll = getAttackRoll($_SESSION[$attacker]);
-  $enemyAC = getAC($_SESSION[$defender]);
+  $hitRoll = intval(getAttackRoll($_SESSION[$attacker]));
+  $enemyAC = intval(getAC($_SESSION[$defender]));
         
   if($hitRoll > $enemyAC)
   {
@@ -254,20 +259,20 @@ function performAttack($moveType, $attacker, $defender)
     $_SESSION[$defender]["HP"] -= $damage;
     if($_SESSION[$defender]["HP"] <= 0)
     {
-      $attackResult[] = array("RESULT" => "WIN","DAMAGE" => $damage,"ENEMYAC" => $enemyAC,);
+      $attackResult[] = array("RESULT" => "WIN","DAMAGE" => $damage,"ENEMYAC" => $enemyAC,"ATTACKTYPE" => $moveType,"HITROLL" => $hitRoll,);
       unset($_SESSION[$defender]);
       unset($_SESSION[$attacker]);
       echo json_encode($attackResult);
     }
     else
     {
-      $attackResult[] = array("RESULT" => "HIT","DAMAGE" => $damage,"ENEMYAC" => $enemyAC,);
+      $attackResult[] = array("RESULT" => "HIT","DAMAGE" => $damage,"ENEMYAC" => $enemyAC,"ATTACKTYPE" => $moveType,"HITROLL" => $hitRoll,);
       echo json_encode($attackResult);
     }
   }
   else
   {
-    $attackResult[] = array("RESULT" => "MISS","DAMAGE" => $damage,"ENEMYAC" => $enemyAC,);
+    $attackResult[] = array("RESULT" => "MISS","DAMAGE" => 0,"ENEMYAC" => $enemyAC,"ATTACKTYPE" => $moveType,"HITROLL" => $hitRoll,);
     echo json_encode($attackResult);
   }
 
@@ -279,7 +284,7 @@ function performAttack($moveType, $attacker, $defender)
   //echo "{$_SESSION["playerStats{$playerID}"]["weaponStat"]} {$_SESSION["playerStats{$playerID}"]["armorStat"]} {$_SESSION["opponentStats{$opponentID}"]["weaponStat"]} {$_SESSION["opponentStats{$opponentID}"]["armorStat"]}";
 }
 
-function healdAndDefend($character)
+function defendAndHeal($character)
 {
   $healAmount = intval(heal($_SESSION[$character]));
   echo "Healed {$healAmount}";
@@ -290,16 +295,17 @@ function healdAndDefend($character)
   }
   $_SESSION[$character]["defenseBonus"] = 10;
 
-  $healResult[] = array("RESULT" => "HEALED");
+  $healResult[] = array("RESULT" => "HEALED","HEALAMOUNT" => $healAmount,);
   echo json_encode($healResult);
   
 }
 
 function buildFlourish($character)
 {
-  
   $_SESSION[$character]["flourish"] += 1;
   $_SESSION[$character]["defenseBonus"] = 0;
+  $buildResult[] = array("RESULT" => "FLOURISHBUILT", "FLORUISH" => $_SESSION[$character]["flourish"],"CHARACTER" => $character,);
+  echo json_encode($buildResult);
 }
 
 ?>
