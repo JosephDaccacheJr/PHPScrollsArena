@@ -124,6 +124,12 @@ public class BattleController : MonoBehaviour
                     + textBattleDialog.text;
                     textOpponentHP.text = "DEAD";
                     popupVictory.SetActive(true);
+
+                    Action<JSONNode> rewardCallback = (battleInfo) =>
+                    {
+
+                    };
+                    StartCoroutine(Main.instance.webRequest.RewardPlayer(_opponentID, rewardCallback));
                     break;
                 default:
                     setMoveButton(false);

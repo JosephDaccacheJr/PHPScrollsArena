@@ -236,6 +236,19 @@ public class WebRequests : MonoBehaviour
 
     }
 
+    public IEnumerator RewardPlayer(int oppID, System.Action<JSONNode> callback)
+    {
+
+        WWWForm form = new WWWForm();
+        form.AddField("opponentID", oppID);
+        form.AddField("playerID", Main.instance.currentID.ToString());
+        using (UnityWebRequest www = UnityWebRequest.Post(hostURL + "rewardplayer.php", form))
+        {
+            yield return www.SendWebRequest();
+            Debug.Log("RewardPlayer: " + www.downloadHandler.text);
+        }
+    }
+
     public IEnumerator SetStats(System.Action<int> callback) 
     {
         WWWForm form = new WWWForm();
